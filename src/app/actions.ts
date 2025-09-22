@@ -76,7 +76,7 @@ export async function runAutomateStandingsUpdate(leagueId: string, leagueName: s
     
     const { updatedStandings } = result;
     
-    updatedStandings.forEach(teamStanding => {
+    for (const teamStanding of updatedStandings) {
       const team = teamsData.find(t => t.name === teamStanding.teamName);
       if (team) {
         // Calculate played, goalsFor, goalsAgainst locally
@@ -104,7 +104,7 @@ export async function runAutomateStandingsUpdate(leagueId: string, leagueName: s
             goalsAgainst: stats.goalsAgainst,
         });
       }
-    });
+    }
 
     triggerRevalidation();
     return { success: true };
