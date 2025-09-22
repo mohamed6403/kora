@@ -58,9 +58,10 @@ const TeamPage: FC<TeamPageProps> = ({ params }) => {
 
   useEffect(() => {
     fetchData();
-    window.addEventListener('storage', fetchData);
+    // Listen for custom event to refetch data when it changes
+    window.addEventListener('data-changed', fetchData);
     return () => {
-        window.removeEventListener('storage', fetchData);
+        window.removeEventListener('data-changed', fetchData);
     };
   }, [fetchData]);
 

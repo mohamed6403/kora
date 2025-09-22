@@ -43,10 +43,10 @@ const StandingsTable: FC<StandingsTableProps> = ({ leagueId, leagueSlug }) => {
 
   useEffect(() => {
     fetchStandings();
-    // Listen for storage changes to auto-update the table
-    window.addEventListener('storage', fetchStandings);
+    // Listen for custom event to auto-update the table
+    window.addEventListener('data-changed', fetchStandings);
     return () => {
-        window.removeEventListener('storage', fetchStandings);
+        window.removeEventListener('data-changed', fetchStandings);
     };
   }, [fetchStandings]);
 

@@ -51,10 +51,10 @@ const LeaguePage: FC<LeaguePageProps> = ({ params }) => {
 
   useEffect(() => {
     fetchData();
-    // Listen for storage event to refetch data when it changes in another tab
-    window.addEventListener('storage', fetchData);
+    // Listen for custom event to refetch data when it changes
+    window.addEventListener('data-changed', fetchData);
     return () => {
-        window.removeEventListener('storage', fetchData);
+        window.removeEventListener('data-changed', fetchData);
     };
   }, [fetchData]);
 
