@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 import type { FC } from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import * as db from '@/lib/local-storage-db';
+import * as db from '@/lib/supabase-db';
 import type { Team } from '@/types';
 import {
   Table,
@@ -26,27 +26,43 @@ const StandingsTable: FC<StandingsTableProps> = ({ leagueId, leagueSlug }) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchStandings = useCallback(() => {
+  const fetchStandings = useCallback(async () => {
     if (!leagueId) return;
     setLoading(true);
-    const teamsData = db.getTeamsByLeagueId(leagueId);
-    // Sort by points and then goal difference
-    teamsData.sort((a, b) => {
+    try {
+      const teamsData = await db.getTeamsByLeagueId(leagueId);
+      // Sort by points and then goal difference
+      teamsData.sort((a, b) => {
         if (b.points !== a.points) {
-            return b.points - a.points;
+          return b.points - a.points;
         }
         return b.goalDifference - a.goalDifference;
-    });
-    setTeams(teamsData);
-    setLoading(false);
+      });
+      setTeams(teamsData);
+    } catch (error) {
+      console.error('Error fetching standings:', error);
+      setTeams([]);
+    } finally {
+      setLoading(false);
+    }
   }, [leagueId]);
 
   useEffect(() => {
     fetchStandings();
     // Listen for custom event to auto-update the table
     window.addEventListener('data-changed', fetchStandings);
+    // Also subscribe to realtime updates for this league (teams/matches)
+    const channel = db.subscribeToLeagueUpdates(leagueId, (payload: any) => {
+      // When a team or match changes in the league, refetch standings
+      fetchStandings();
+    });
+
     return () => {
         window.removeEventListener('data-changed', fetchStandings);
+        // cleanup realtime subscription
+        if (channel && typeof (channel as any).unsubscribe === 'function') {
+          try { (channel as any).unsubscribe(); } catch (e) { /* ignore */ }
+        }
     };
   }, [fetchStandings]);
 

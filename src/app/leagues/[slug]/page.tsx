@@ -12,14 +12,16 @@ import { ArrowLeft, Trophy } from 'lucide-react';
 import Link from 'next/link';
 
 interface LeaguePageProps {
-  params: { slug: string };
+  params: any;
 }
 
 const LeaguePage: FC<LeaguePageProps> = ({ params }) => {
   // Use React.use() to unwrap the params object.
   // This is the modern, recommended way to access route parameters
   // in Next.js to support streaming and future React features.
-  const { slug } = use(params);
+  // `params` is a Promise-like value in the new Next.js routing ABI.
+  // Use React.use() to unwrap it and cast to the expected shape for TypeScript.
+  const { slug } = use(params) as { slug: string };
 
   const [league, setLeague] = useState<League | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);

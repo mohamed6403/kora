@@ -14,14 +14,15 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 interface AdminLeaguePageProps {
-  params: { slug: string };
+  params: any;
 }
 
 export default function AdminLeaguePage({ params }: AdminLeaguePageProps) {
   // Use React.use() to unwrap the params object.
   // This is the modern, recommended way to access route parameters
   // in Next.js to support streaming and future React features.
-  const { slug } = use(params);
+  // Unwrap Promise-like params using React.use() and cast for TypeScript
+  const { slug } = use(params) as { slug: string };
   
   const { user, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();

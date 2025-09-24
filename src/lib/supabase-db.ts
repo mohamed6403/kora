@@ -35,8 +35,11 @@ const convertMatch = (row: any): Match => ({
   homeTeamId: row.home_team_id.toString(),
   awayTeamId: row.away_team_id.toString(),
   dateTime: new Date(row.date_time),
+  // Provide both naming conventions so UI and server code stay compatible
   homeScore: row.home_score,
   awayScore: row.away_score,
+  homeGoals: row.home_score,
+  awayGoals: row.away_score,
   status: row.status,
   createdAt: new Date(row.created_at),
   updatedAt: new Date(row.updated_at),
