@@ -5,6 +5,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import type { UserProfile } from '@/types';
 import { supabase } from '@/lib/supabase-client';
 
+// Admin email can be configured via env in development. If not provided, default to allowing any authenticated user as admin (dev mode).
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || '';
+
 // We'll map the supabase user to a minimal User shape used in the app
 interface User {
   uid: string;
@@ -48,9 +51,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const u = { uid: session.user.id, email: session.user.email ?? null };
         setUser(u);
         // Simple admin check: email match
-        const adminFlag = (session.user.email ?? '') === 'admin@example.com';
-        setIsAdmin(adminFlag);
-        setUserProfile({ uid: u.uid, email: u.email ?? '', role: adminFlag ? 'admin' : 'user', createdAt: new Date() } as any);
+  const email = session.user.email ?? '';
+  const adminFlag = ADMIN_EMAIL ? email === ADMIN_EMAIL : true;
+  setIsAdmin(adminFlag);
+  setUserProfile({ uid: u.uid, email: u.email ?? '', role: adminFlag ? 'admin' : 'user', createdAt: new Date() } as any);
       }
       setLoading(false);
     };
@@ -100,9 +104,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data?.user) {
         const u = { uid: data.user.id, email: data.user.email ?? null };
         setUser(u);
-        const admin = (data.user.email ?? '') === 'admin@example.com';
-        setIsAdmin(admin);
-        setUserProfile({ uid: u.uid, email: u.email ?? '', role: admin ? 'admin' : 'user', createdAt: new Date() } as any);
+  const email = data.user.email ?? '';
+  const admin = ADMIN_EMAIL ? email === ADMIN_EMAIL : true;
+  setIsAdmin(admin);
+  setUserProfile({ uid: u.uid, email: u.email ?? '', role: admin ? 'admin' : 'user', createdAt: new Date() } as any);
         // Redirect immediately to admin after successful sign-in
         try {
           router.push('/admin');
