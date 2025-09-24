@@ -3,11 +3,12 @@
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { UserProfile } from '@/types';
+import { supabase } from '@/lib/supabase-client';
 
-// Mock User object structure
+// We'll map the supabase user to a minimal User shape used in the app
 interface User {
   uid: string;
-  email: string;
+  email: string | null;
 }
 
 interface AuthContextType {
@@ -15,8 +16,8 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   isAdmin: boolean;
   loading: boolean;
-  login: (pass: string) => boolean;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,13 +25,9 @@ const AuthContext = createContext<AuthContextType>({
   userProfile: null,
   isAdmin: false,
   loading: true,
-  login: () => false,
-  logout: () => {},
+  login: async () => ({ success: false }),
+  logout: async () => {},
 });
-
-const ADMIN_EMAIL = 'admin@example.com';
-const ADMIN_PASS = 'admin123';
-const AUTH_KEY = 'botola_auth';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -40,23 +37,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Initialize session from Supabase
   useEffect(() => {
-    // Check localStorage for a saved session on initial load
-    const savedUser = localStorage.getItem(AUTH_KEY);
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      if (parsedUser.email === ADMIN_EMAIL) {
-        setUser(parsedUser);
-        setIsAdmin(true);
-        setUserProfile({
-            uid: parsedUser.uid,
-            email: parsedUser.email,
-            role: 'admin',
-            createdAt: new Date()
-        });
+    let mounted = true;
+
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted) return;
+      if (session?.user) {
+        const u = { uid: session.user.id, email: session.user.email ?? null };
+        setUser(u);
+        // Simple admin check: email match
+        const adminFlag = (session.user.email ?? '') === 'admin@example.com';
+        setIsAdmin(adminFlag);
+        setUserProfile({ uid: u.uid, email: u.email ?? '', role: adminFlag ? 'admin' : 'user', createdAt: new Date() } as any);
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    init();
+
+    // Listen for auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u = { uid: session.user.id, email: session.user.email ?? null };
+        setUser(u);
+        const adminFlag = (session.user.email ?? '') === 'admin@example.com';
+        setIsAdmin(adminFlag);
+        setUserProfile({ uid: u.uid, email: u.email ?? '', role: adminFlag ? 'admin' : 'user', createdAt: new Date() } as any);
+        router.push('/admin');
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+        setUserProfile(null);
+        // keep user on login page if they're on admin routes
+        if (pathname?.startsWith('/admin')) router.push('/admin/login');
+      }
+    });
+
+    return () => {
+      mounted = false;
+      listener?.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -71,26 +93,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isAdmin, loading, pathname, router]);
 
-  const login = (password: string): boolean => {
-    if (password === ADMIN_PASS) {
-      const newUser = { uid: 'admin_user', email: ADMIN_EMAIL };
-      localStorage.setItem(AUTH_KEY, JSON.stringify(newUser));
-      setUser(newUser);
-      setIsAdmin(true);
-      setUserProfile({
-            uid: newUser.uid,
-            email: newUser.email,
-            role: 'admin',
-            createdAt: new Date()
-      });
-      router.push('/admin');
-      return true;
+  const login = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        console.error('Supabase sign in error:', error.message);
+        return { success: false, error: error.message };
+      }
+      if (data?.user) {
+        const u = { uid: data.user.id, email: data.user.email ?? null };
+        setUser(u);
+        const admin = (data.user.email ?? '') === 'admin@example.com';
+        setIsAdmin(admin);
+        setUserProfile({ uid: u.uid, email: u.email ?? '', role: admin ? 'admin' : 'user', createdAt: new Date() } as any);
+        return { success: true };
+      }
+      return { success: false, error: 'No user returned from sign-in' };
+    } catch (err: any) {
+      console.error('Unexpected login error:', err);
+      return { success: false, error: err?.message || String(err) };
     }
-    return false;
   };
 
-  const logout = () => {
-    localStorage.removeItem(AUTH_KEY);
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setIsAdmin(false);
     setUserProfile(null);
