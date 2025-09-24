@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -23,6 +24,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -44,6 +46,7 @@ export default function LoginForm() {
         title: 'Signed in',
         description: 'Welcome back!',
       });
+      try { router.push('/admin'); } catch (err) { /* ignore */ }
     }
     setLoading(false);
   };
