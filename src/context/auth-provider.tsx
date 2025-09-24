@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     init();
 
-    // Listen for auth state changes
+    // Listen for auth state changes (update state only; navigation is handled by pages)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const u = { uid: session.user.id, email: session.user.email ?? null };
@@ -65,13 +65,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const adminFlag = (session.user.email ?? '') === 'admin@example.com';
         setIsAdmin(adminFlag);
         setUserProfile({ uid: u.uid, email: u.email ?? '', role: adminFlag ? 'admin' : 'user', createdAt: new Date() } as any);
-        router.push('/admin');
       } else {
         setUser(null);
         setIsAdmin(false);
         setUserProfile(null);
-        // keep user on login page if they're on admin routes
-        if (pathname?.startsWith('/admin')) router.push('/admin/login');
       }
     });
 
