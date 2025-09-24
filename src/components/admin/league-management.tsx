@@ -8,6 +8,7 @@ import { PlusCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import CreateLeagueDialog from './create-league-dialog';
+import { deleteLeague as deleteLeagueAction } from '@/app/actions';
 
 interface LeagueManagementProps {
   leagues: League[];
@@ -46,11 +47,36 @@ export default function LeagueManagement({ leagues }: LeagueManagementProps) {
                   <TableCell className="font-medium">{league.name}</TableCell>
                   <TableCell>{format(league.createdAt, 'PPP')}</TableCell>
                   <TableCell className="text-right">
-                    <Button asChild variant="ghost" size="sm">
-                      <Link href={`/admin/leagues/${league.slug}`}>
-                        Manage <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href={`/admin/leagues/${league.slug}`}>
+                          Manage <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={async () => {
+                          const ok = window.confirm(`Delete league "${league.name}" and all its teams & matches? This cannot be undone.`);
+                          if (!ok) return;
+                          try {
+                            const res = await deleteLeagueAction(league.id);
+                            if (res?.success) {
+                              // action triggers revalidation; optionally log
+                              console.log('League deleted:', league.id);
+                            } else {
+                              console.error('Failed to delete league:', res?.error);
+                              window.alert('Failed to delete league. See console for details.');
+                            }
+                          } catch (err) {
+                            console.error('Error calling deleteLeague action:', err);
+                            window.alert('Unexpected error deleting league. See console.');
+                          }
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

@@ -232,3 +232,15 @@ export async function deleteMatch(leagueId: string, matchId: string) {
         return { success: false, error: 'Failed to delete match.' };
     }
 }
+
+// League deletion action
+export async function deleteLeague(leagueId: string) {
+  try {
+    await db.deleteLeague(leagueId);
+    triggerRevalidation();
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting league:', error);
+    return { success: false, error: 'Failed to delete league.' };
+  }
+}

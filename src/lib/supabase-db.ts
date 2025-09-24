@@ -285,6 +285,51 @@ export const deleteMatchFromLeague = async (matchId: string): Promise<boolean> =
   return true;
 };
 
+// League deletion: remove matches and teams belonging to the league, then remove the league row.
+export const deleteLeague = async (leagueId: string): Promise<boolean> => {
+  try {
+    const leagueInt = parseInt(leagueId);
+
+    // Delete matches for the league
+    const { error: matchError } = await supabase
+      .from('matches')
+      .delete()
+      .eq('league_id', leagueInt);
+
+    if (matchError) {
+      console.error('Error deleting matches for league:', matchError);
+      return false;
+    }
+
+    // Delete teams for the league
+    const { error: teamError } = await supabase
+      .from('teams')
+      .delete()
+      .eq('league_id', leagueInt);
+
+    if (teamError) {
+      console.error('Error deleting teams for league:', teamError);
+      return false;
+    }
+
+    // Finally delete the league itself
+    const { error: leagueError } = await supabase
+      .from('leagues')
+      .delete()
+      .eq('id', leagueInt);
+
+    if (leagueError) {
+      console.error('Error deleting league:', leagueError);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Unexpected error deleting league:', err);
+    return false;
+  }
+};
+
 // Real-time subscriptions
 export const subscribeToLeagueUpdates = (leagueId: string, callback: (payload: any) => void) => {
   return supabase
