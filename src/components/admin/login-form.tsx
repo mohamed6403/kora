@@ -26,10 +26,8 @@ export default function LoginForm() {
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: 'admin@example.com',
-      password: 'admin123',
-    },
+    // leave defaultValues empty so browser can autofill saved credentials
+    defaultValues: {},
   });
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -65,7 +63,7 @@ export default function LoginForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="admin@example.com" {...field} />
+                    <Input placeholder="name@company.com" autoComplete="email" autoFocus {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -78,7 +76,7 @@ export default function LoginForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input type="password" placeholder="••••••••" autoComplete="current-password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
