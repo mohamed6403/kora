@@ -28,8 +28,8 @@ export default function LoginForm() {
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    // leave defaultValues empty so browser can autofill saved credentials
-    defaultValues: {},
+    // Provide empty defaults so inputs are controlled from mount (prevents uncontrolled -> controlled warning)
+    defaultValues: { email: '', password: '' },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
