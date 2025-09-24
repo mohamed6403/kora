@@ -34,12 +34,17 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
-    const success = login(data.password);
-    if (!success) {
+    const res = await login(data.email, data.password);
+    if (!res.success) {
       toast({
         variant: 'destructive',
         title: 'Authentication Failed',
-        description: 'Please check your credentials and try again.',
+        description: res.error || 'Please check your credentials and try again.',
+      });
+    } else {
+      toast({
+        title: 'Signed in',
+        description: 'Welcome back!',
       });
     }
     setLoading(false);
@@ -60,7 +65,7 @@ export default function LoginForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input readOnly placeholder="admin@example.com" {...field} />
+                    <Input placeholder="admin@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
