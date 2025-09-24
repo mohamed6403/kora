@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Redirect logic based on auth state
-    if (!loading) {
+    if (!loading && pathname) {
       if (!isAdmin && pathname.startsWith('/admin') && pathname !== '/admin/login') {
         router.push('/admin/login');
       }

@@ -33,12 +33,16 @@ export interface Match {
   homeTeamLogo?: string;
   awayTeamLogo?: string;
   dateTime: Date;
+  // keep both naming variants for compatibility
   homeGoals: number | null;
   awayGoals: number | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
+  leagueId?: string;
   status: 'upcoming' | 'finished';
   createdAt: Date;
   updatedAt: Date;
-  _teams: [string, string]; // For easier querying in local-storage-db
+  _teams?: [string, string]; // For easier querying in local-storage-db
 }
 
 export interface UserProfile {

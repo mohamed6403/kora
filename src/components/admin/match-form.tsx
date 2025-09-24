@@ -181,7 +181,16 @@ export default function MatchForm({ open, setOpen, leagueId, teams, match }: Mat
                   <FormItem>
                     <FormLabel>Home Goals</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="-" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? null : e.target.value)} />
+                      <Input
+                        type="number"
+                        placeholder="-"
+                        {...field}
+                        value={field.value ?? ''}
+                        onChange={e => {
+                          const v = e.target.value;
+                          field.onChange(v === '' ? null : Number(v));
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -194,7 +203,16 @@ export default function MatchForm({ open, setOpen, leagueId, teams, match }: Mat
                   <FormItem>
                     <FormLabel>Away Goals</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="-" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? null : e.target.value)} />
+                      <Input
+                        type="number"
+                        placeholder="-"
+                        {...field}
+                        value={field.value ?? ''}
+                        onChange={e => {
+                          const v = e.target.value;
+                          field.onChange(v === '' ? null : Number(v));
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

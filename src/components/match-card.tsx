@@ -9,7 +9,6 @@ interface MatchCardProps {
 }
 
 const MatchCard: FC<MatchCardProps> = ({ match }) => {
-  // The date is already a Date object from our local-storage-db
   const matchDate = match.dateTime;
 
   return (

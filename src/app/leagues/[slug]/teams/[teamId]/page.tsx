@@ -12,14 +12,15 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface TeamPageProps {
-  params: { slug: string; teamId: string };
+  params: any;
 }
 
 const TeamPage: FC<TeamPageProps> = ({ params }) => {
   // Use React.use() to unwrap the params object.
   // This is the modern, recommended way to access route parameters
   // in Next.js to support streaming and future React features.
-  const { slug, teamId } = use(params);
+  // Unwrap Promise-like params using React.use() and cast for TypeScript
+  const { slug, teamId } = use(params) as { slug: string; teamId: string };
 
   const [league, setLeague] = useState<League | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
@@ -60,8 +61,16 @@ const TeamPage: FC<TeamPageProps> = ({ params }) => {
     fetchData();
     // Listen for custom event to refetch data when it changes
     window.addEventListener('data-changed', fetchData);
+    // subscribe to realtime team updates so the stats update when changed
+    const channel = db.subscribeToTeamUpdates(teamId, (payload: any) => {
+      fetchData();
+    });
+
     return () => {
         window.removeEventListener('data-changed', fetchData);
+        if (channel && typeof (channel as any).unsubscribe === 'function') {
+          try { (channel as any).unsubscribe(); } catch (e) { /* ignore */ }
+        }
     };
   }, [fetchData]);
 

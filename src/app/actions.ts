@@ -51,8 +51,9 @@ export async function runAutomateStandingsUpdate(leagueId: string, leagueName: s
           return {
             homeTeam: homeTeam?.name || 'Unknown Team',
             awayTeam: awayTeam?.name || 'Unknown Team',
-            homeScore: match.homeScore,
-            awayScore: match.awayScore,
+            // scores are guaranteed non-null by the filter above
+            homeScore: match.homeScore!,
+            awayScore: match.awayScore!,
           };
         })
     );
@@ -171,7 +172,7 @@ export async function deleteTeam(leagueId: string, teamId: string) {
 export async function addMatch(leagueId: string, values: z.infer<typeof matchSchema>) {
   try {
     const { homeTeamId, awayTeamId, homeGoals, awayGoals, dateTime } = values;
-    const status = homeGoals !== null && awayGoals !== null && homeGoals >= 0 && awayGoals >= 0 ? 'finished' : 'scheduled';
+  const status = homeGoals !== null && awayGoals !== null && homeGoals >= 0 && awayGoals >= 0 ? 'finished' : 'upcoming';
     
     await db.addMatchToLeague(leagueId, {
       homeTeamId,
@@ -179,6 +180,10 @@ export async function addMatch(leagueId: string, values: z.infer<typeof matchSch
       dateTime,
       homeScore: homeGoals,
       awayScore: awayGoals,
+      // maintain compatibility with Match type
+      homeGoals: homeGoals,
+      awayGoals: awayGoals,
+      _teams: [homeTeamId, awayTeamId],
       status,
     });
 
@@ -193,16 +198,20 @@ export async function addMatch(leagueId: string, values: z.infer<typeof matchSch
 export async function updateMatch(leagueId: string, matchId: string, values: z.infer<typeof matchSchema>) {
     try {
         const { homeTeamId, awayTeamId, homeGoals, awayGoals, dateTime } = values;
-        const status = (homeGoals !== null && awayGoals !== null && homeGoals >= 0 && awayGoals >= 0) ? 'finished' : 'scheduled';
+  const status = (homeGoals !== null && awayGoals !== null && homeGoals >= 0 && awayGoals >= 0) ? 'finished' : 'upcoming';
 
-        await db.updateMatchInLeague(matchId, {
-            homeTeamId,
-            awayTeamId,
-            dateTime,
-            homeScore: homeGoals,
-            awayScore: awayGoals,
-            status,
-        });
+    await db.updateMatchInLeague(matchId, {
+      homeTeamId,
+      awayTeamId,
+      dateTime,
+      homeScore: homeGoals,
+      awayScore: awayGoals,
+      // keep compatibility fields
+      homeGoals: homeGoals,
+      awayGoals: awayGoals,
+      _teams: [homeTeamId, awayTeamId],
+      status,
+    });
 
         triggerRevalidation();
         return { success: true };
