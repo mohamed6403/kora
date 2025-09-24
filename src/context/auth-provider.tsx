@@ -106,6 +106,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const admin = (data.user.email ?? '') === 'admin@example.com';
         setIsAdmin(admin);
         setUserProfile({ uid: u.uid, email: u.email ?? '', role: admin ? 'admin' : 'user', createdAt: new Date() } as any);
+        // Redirect immediately to admin after successful sign-in
+        try {
+          router.push('/admin');
+        } catch (err) {
+          // ignore navigation errors
+        }
         return { success: true };
       }
       return { success: false, error: 'No user returned from sign-in' };
