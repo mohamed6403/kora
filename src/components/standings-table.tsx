@@ -89,9 +89,9 @@ const StandingsTable: FC<StandingsTableProps> = ({ leagueId, leagueSlug }) => {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <Table>
+          <Table className="rounded-[var(--radius)]">
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-muted/50">
                 <TableHead className="w-[250px]">Team</TableHead>
                 <TableHead>P</TableHead>
                 <TableHead>W</TableHead>
@@ -108,28 +108,28 @@ const StandingsTable: FC<StandingsTableProps> = ({ leagueId, leagueSlug }) => {
                 [...Array(5)].map((_, i) => renderSkeleton(i))
               ) : teams.length > 0 ? (
                 teams.map(team => (
-                  <TableRow key={team.id}>
+                  <TableRow key={team.id} className="hover:shadow-sm">
                     <TableCell className="font-medium">
                        <Link href={`/leagues/${leagueSlug}/teams/${team.id}`} className="flex items-center gap-3 hover:underline">
                         <Image
                           src={team.logoURL}
                           alt={`${team.name} logo`}
-                          width={24}
-                          height={24}
+                          width={28}
+                          height={28}
                           className="rounded-full object-cover"
                           data-ai-hint="team logo"
                         />
-                        <span>{team.name}</span>
+                        <span className="text-sm font-medium text-foreground">{team.name}</span>
                       </Link>
                     </TableCell>
-                    <TableCell>{team.played}</TableCell>
-                    <TableCell>{team.wins}</TableCell>
-                    <TableCell>{team.draws}</TableCell>
-                    <TableCell>{team.losses}</TableCell>
-                    <TableCell>{team.goalsFor}</TableCell>
-                    <TableCell>{team.goalsAgainst}</TableCell>
-                    <TableCell>{team.goalDifference}</TableCell>
-                    <TableCell className="font-bold">{team.points}</TableCell>
+                    <TableCell className="text-center">{team.played}</TableCell>
+                    <TableCell className="text-center text-green-600">{team.wins}</TableCell>
+                    <TableCell className="text-center text-foreground">{team.draws}</TableCell>
+                    <TableCell className="text-center text-red-500">{team.losses}</TableCell>
+                    <TableCell className="text-center">{team.goalsFor}</TableCell>
+                    <TableCell className="text-center">{team.goalsAgainst}</TableCell>
+                    <TableCell className="text-center">{team.goalDifference}</TableCell>
+                    <TableCell className="font-bold text-primary text-center">{team.points}</TableCell>
                   </TableRow>
                 ))
               ) : (
